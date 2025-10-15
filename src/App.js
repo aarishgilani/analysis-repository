@@ -2,6 +2,7 @@ import logo from './logo.svg';
 import React, { useState } from 'react';
 import './App.css';
 import NerdScienceAnalysis from './NerdScienceAnalysis.js';
+import CredibleIntervalCalculator from './CredibleIntervalCalculator.js';
 
 function App() {
   const [currentView, setCurrentView] = useState('home');
@@ -16,12 +17,19 @@ function App() {
             onClick={() => setCurrentView('NerdScienceAnalysis')}
             className="bg-white text-blue-600 px-6 py-2 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
           >
-            NerdScienceAnalysis
+            Nerd Science Analysis
+          </button>
+          <button 
+            onClick={() => setCurrentView('CredibleIntervalCalculator')}
+            className="bg-white ml-5 text-blue-600 px-6 py-2 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
+          >
+            Credible Interval Calculator
           </button>
         </p>
       </header>
 
       {currentView === 'NerdScienceAnalysis' && <NerdScienceAnalysis />}
+      {currentView === 'CredibleIntervalCalculator' && <CredibleIntervalCalculator />}
     </div>
   );
 }

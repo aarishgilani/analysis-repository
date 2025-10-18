@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar, TrendingUp, Activity, Heart, Clock, Plus, Zap } from 'lucide-react';
+import { Calendar, TrendingUp, Activity, Heart, Clock, Plus, Zap, CalendarPlus } from 'lucide-react';
 
 const RunningPlanner = () => {
   const [csvData, setCsvData] = useState([]);
@@ -101,6 +101,59 @@ const RunningPlanner = () => {
     setUsingDefaultData(false);
     setShowQuickForm(false);
     setQuickFormData({ feeling: '', weeklyKms: '' });
+  };
+
+  const getNextWeekDate = (dayName) => {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const today = new Date();
+    const todayDay = today.getDay();
+    const targetDay = days.indexOf(dayName.toLowerCase());
+    
+    let daysUntilTarget = targetDay - todayDay;
+    if (daysUntilTarget <= 0) {
+      daysUntilTarget += 7;
+    }
+    
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + daysUntilTarget);
+    return targetDate;
+  };
+
+  const formatDateForCalendar = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  };
+
+  const addToGoogleCalendar = (day, runInfo) => {
+    const date = getNextWeekDate(day);
+    const dateStr = formatDateForCalendar(date);
+    
+    const title = `${runInfo.type} - ${runInfo.distance}km`;
+    const details = `Distance: ${runInfo.distance}km\nIntensity: ${runInfo.intensity}\n\nNotes: ${runInfo.notes}`;
+    const location = '';
+    
+    // Morning run: 7:00 AM - 8:00 AM
+    const startTime = `${dateStr}T070000`;
+    const endTime = `${dateStr}T080000`;
+    
+    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startTime}/${endTime}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+    
+    window.open(calendarUrl, '_blank');
+  };
+
+  const addAllRunsToCalendar = () => {
+    if (!recommendations) return;
+    
+    // Add Monday
+    setTimeout(() => addToGoogleCalendar('monday', recommendations.monday), 0);
+    // Add Wednesday
+    setTimeout(() => addToGoogleCalendar('wednesday', recommendations.wednesday), 500);
+    // Add Saturday
+    setTimeout(() => addToGoogleCalendar('saturday', recommendations.saturday), 1000);
+    
+    alert('Opening Google Calendar for each run. Please add them one by one in your browser.');
   };
 
   const handleFileUpload = async (event) => {
@@ -485,6 +538,16 @@ const RunningPlanner = () => {
           </div>
         </div>
 
+        <div className="mb-6">
+          <button
+            onClick={addAllRunsToCalendar}
+            className="flex items-center justify-center w-full gap-2 px-6 py-3 font-semibold text-white transition-colors bg-purple-600 rounded-lg hover:bg-purple-700"
+          >
+            <CalendarPlus size={24} />
+            Add All Runs to Google Calendar
+          </button>
+        </div>
+
         <div className="space-y-4">
           <div className="p-5 transition-shadow bg-white border-2 border-gray-200 rounded-lg hover:shadow-md">
             <div className="flex items-start justify-between mb-3">
@@ -507,6 +570,13 @@ const RunningPlanner = () => {
               </div>
               <p className="text-sm italic text-gray-600">{recommendations.monday.notes}</p>
             </div>
+            <button
+              onClick={() => addToGoogleCalendar('monday', recommendations.monday)}
+              className="flex items-center gap-2 px-4 py-2 mt-3 text-sm font-medium text-blue-700 transition-colors bg-blue-100 rounded-lg hover:bg-blue-200"
+            >
+              <CalendarPlus size={16} />
+              Add to Calendar
+            </button>
           </div>
 
           <div className="p-5 transition-shadow bg-white border-2 border-gray-200 rounded-lg hover:shadow-md">
@@ -530,6 +600,13 @@ const RunningPlanner = () => {
               </div>
               <p className="text-sm italic text-gray-600">{recommendations.wednesday.notes}</p>
             </div>
+            <button
+              onClick={() => addToGoogleCalendar('wednesday', recommendations.wednesday)}
+              className="flex items-center gap-2 px-4 py-2 mt-3 text-sm font-medium text-blue-700 transition-colors bg-blue-100 rounded-lg hover:bg-blue-200"
+            >
+              <CalendarPlus size={16} />
+              Add to Calendar
+            </button>
           </div>
 
           <div className="p-5 transition-shadow bg-white border-2 border-gray-200 rounded-lg hover:shadow-md">
@@ -553,6 +630,13 @@ const RunningPlanner = () => {
               </div>
               <p className="text-sm italic text-gray-600">{recommendations.saturday.notes}</p>
             </div>
+            <button
+              onClick={() => addToGoogleCalendar('saturday', recommendations.saturday)}
+              className="flex items-center gap-2 px-4 py-2 mt-3 text-sm font-medium text-blue-700 transition-colors bg-blue-100 rounded-lg hover:bg-blue-200"
+            >
+              <CalendarPlus size={16} />
+              Add to Calendar
+            </button>
           </div>
         </div>
 

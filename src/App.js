@@ -4,6 +4,7 @@ import './App.css';
 import NerdScienceAnalysis from './NerdScienceAnalysis.js';
 import CredibleIntervalCalculator from './CredibleIntervalCalculator.js';
 import GittinsIndexTool from './GittinsIndexTool.js';
+import RunPlanner from './RunPlanner.js';
 
 function App() {
   const [currentView, setCurrentView] = useState('home');
@@ -32,12 +33,19 @@ function App() {
           >
             Gittins Index Tool
           </button>
+          <button 
+            onClick={() => setCurrentView('RunPlanner')}
+            className="px-6 py-2 ml-5 font-semibold text-blue-600 transition-colors bg-white rounded-lg hover:bg-gray-100"
+          >
+            Run Planner
+          </button>
         </p>
       </header>
 
       {currentView === 'NerdScienceAnalysis' && <NerdScienceAnalysis />}
       {currentView === 'CredibleIntervalCalculator' && <CredibleIntervalCalculator />}
       {currentView === 'GittinsIndexTool' && <GittinsIndexTool />}
+      {currentView === 'RunPlanner' && <RunPlanner />}
     </div>
   );
 }

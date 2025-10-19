@@ -5,6 +5,7 @@ import NerdScienceAnalysis from './NerdScienceAnalysis.js';
 import CredibleIntervalCalculator from './CredibleIntervalCalculator.js';
 import GittinsIndexTool from './GittinsIndexTool.js';
 import RunPlanner from './RunPlanner.js';
+import TinyExperiments from './TinyExperiments.js';
 
 function App() {
   const [currentView, setCurrentView] = useState('home');
@@ -39,6 +40,12 @@ function App() {
           >
             Run Planner
           </button>
+          <button 
+            onClick={() => setCurrentView('TinyExperiments')}
+            className="px-6 py-2 ml-5 font-semibold text-blue-600 transition-colors bg-white rounded-lg hover:bg-gray-100"
+          >
+            Tiny Experiments
+          </button>
         </p>
       </header>
 
@@ -46,6 +53,8 @@ function App() {
       {currentView === 'CredibleIntervalCalculator' && <CredibleIntervalCalculator />}
       {currentView === 'GittinsIndexTool' && <GittinsIndexTool />}
       {currentView === 'RunPlanner' && <RunPlanner />}
+      {currentView === 'TinyExperiments' && <TinyExperiments />}
+
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, TrendingUp, Activity, Heart, Clock, Plus, Zap, CalendarPlus } from 'lucide-react';
-import Papa from 'papaparse';
 
 const RunningPlanner = () => {
   const [csvData, setCsvData] = useState([]);
@@ -22,7 +21,13 @@ const RunningPlanner = () => {
     try {
       const fileData = await window.fs.readFile('Running Strategy  Running Readiness.csv', { encoding: 'utf8' });
       
-      const result = Papa.default.parse(fileData, {
+      // Use Papa from global scope (loaded via script tag)
+      const Papa = window.Papa;
+      if (!Papa) {
+        throw new Error('Papaparse not loaded');
+      }
+      
+      const result = Papa.parse(fileData, {
         header: true,
         dynamicTyping: true,
         skipEmptyLines: true
@@ -170,6 +175,12 @@ const RunningPlanner = () => {
       
       console.log('File text length:', text.length);
       
+      // Use Papa from global scope (loaded via script tag)
+      const Papa = window.Papa;
+      if (!Papa) {
+        throw new Error('Papaparse not loaded');
+      }
+      
       const result = Papa.parse(text, {
         header: true,
         dynamicTyping: true,
@@ -236,43 +247,33 @@ const RunningPlanner = () => {
   };
 
   const generateRecommendations = (readinessPercent, weeklyKms, feeling) => {
-    // Distribution algorithm based on feeling
+    // Distribution algorithm based on readiness following 80/20 principle
     let mondayRatio, wednesdayRatio, saturdayRatio;
     
     const feelingLower = (feeling || '').toLowerCase();
     
-    if (feelingLower.includes('great') || feelingLower.includes('excellent') || feelingLower.includes('strong')) {
-      // High energy: Build toward Saturday long run
-      mondayRatio = 0.30;      // 30% - Tempo/Quality
-      wednesdayRatio = 0.25;   // 25% - Recovery
-      saturdayRatio = 0.45;    // 45% - Long run
-    } else if (feelingLower.includes('good') || feelingLower.includes('fine')) {
-      // Good energy: Balanced distribution
-      mondayRatio = 0.32;
-      wednesdayRatio = 0.30;
-      saturdayRatio = 0.38;
-    } else if (feelingLower.includes('okay') || feelingLower.includes('moderate') || feelingLower.includes('normal')) {
-      // Moderate energy: More even distribution
-      mondayRatio = 0.33;
-      wednesdayRatio = 0.32;
-      saturdayRatio = 0.35;
-    } else if (feelingLower.includes('tired') || feelingLower.includes('fatigued') || feelingLower.includes('sore')) {
-      // Low energy: Conservative, spread evenly
-      mondayRatio = 0.30;
-      wednesdayRatio = 0.35;   // Easier middle run
-      saturdayRatio = 0.35;
+    if (readinessPercent >= 85) {
+      // High readiness: 80/20 structure - one hard day, two easy days
+      mondayRatio = 0.30;      // 30% - Hard (20% of volume at high intensity)
+      wednesdayRatio = 0.30;   // 30% - Easy (part of 80%)
+      saturdayRatio = 0.40;    // 40% - Easy Long Run (part of 80%)
+    } else if (readinessPercent >= 70) {
+      // Moderate readiness: Balanced 80/20
+      mondayRatio = 0.30;      // 30% - Steady/Moderate
+      wednesdayRatio = 0.30;   // 30% - Easy
+      saturdayRatio = 0.40;    // 40% - Easy Long
     } else {
-      // Default balanced
-      mondayRatio = 0.32;
-      wednesdayRatio = 0.30;
-      saturdayRatio = 0.38;
+      // Low readiness: Equal split - all easy runs for recovery
+      mondayRatio = 0.333;     // 33.3% - Easy
+      wednesdayRatio = 0.333;  // 33.3% - Easy
+      saturdayRatio = 0.334;   // 33.4% - Easy
     }
     
     const mondayKm = (weeklyKms * mondayRatio).toFixed(1);
     const wednesdayKm = (weeklyKms * wednesdayRatio).toFixed(1);
     const saturdayKm = (weeklyKms * saturdayRatio).toFixed(1);
     
-    // Determine run types and notes based on readiness
+    // Determine run types and notes based on readiness with 80/20 intensity
     if (readinessPercent >= 85) {
       return {
         level: 'High',
@@ -280,22 +281,22 @@ const RunningPlanner = () => {
         bgColor: 'bg-green-50',
         borderColor: 'border-green-200',
         monday: {
-          type: 'Tempo Run',
+          type: 'Tempo Run (Hard)',
           distance: mondayKm,
-          intensity: 'Moderate-High (75-85% effort)',
-          notes: 'You\'re well-recovered. Push the pace today with quality work.'
+          intensity: 'High Intensity (75-85% effort) - 20% Volume',
+          notes: 'Quality day! This is your hard session for the week. Push the pace with good form.'
         },
         wednesday: {
           type: 'Easy Recovery',
           distance: wednesdayKm,
-          intensity: 'Easy (60-70% effort)',
-          notes: 'Active recovery between harder sessions. Keep it conversational.'
+          intensity: 'Easy (60-70% effort) - 80% Volume',
+          notes: 'True easy run. Conversational pace. Part of your aerobic base building.'
         },
         saturday: {
-          type: 'Long Run',
+          type: 'Long Easy Run',
           distance: saturdayKm,
-          intensity: 'Moderate (70-80% effort)',
-          notes: 'Build endurance with your longest run. Strong finish.'
+          intensity: 'Easy-Steady (65-75% effort) - 80% Volume',
+          notes: 'Longest run of the week at easy pace. Build endurance without excessive fatigue.'
         }
       };
     } else if (readinessPercent >= 70) {
@@ -308,19 +309,19 @@ const RunningPlanner = () => {
           type: 'Steady Run',
           distance: mondayKm,
           intensity: 'Moderate (70-75% effort)',
-          notes: 'Maintain steady effort. Find your rhythm.'
+          notes: 'Steady effort. Not quite hard, but purposeful. Stay controlled.'
         },
         wednesday: {
           type: 'Easy Run',
           distance: wednesdayKm,
-          intensity: 'Easy (60-70% effort)',
-          notes: 'Focus on form and breathing. Stay comfortable.'
+          intensity: 'Easy (60-70% effort) - 80% Volume',
+          notes: 'Focus on easy running. Keep it comfortable and relaxed.'
         },
         saturday: {
-          type: 'Progressive Run',
+          type: 'Long Easy Run',
           distance: saturdayKm,
-          intensity: 'Easy to Moderate (65-80% effort)',
-          notes: 'Start easy, build gradually. Finish strong in final third.'
+          intensity: 'Easy (65-75% effort) - 80% Volume',
+          notes: 'Long run at easy pace. Build aerobic capacity without pushing too hard.'
         }
       };
     } else if (readinessPercent >= 55) {
@@ -332,20 +333,20 @@ const RunningPlanner = () => {
         monday: {
           type: 'Easy Run',
           distance: mondayKm,
-          intensity: 'Easy (60-70% effort)',
-          notes: 'Start the week gently. Listen to your body.'
+          intensity: 'Easy (60-65% effort) - Recovery Week',
+          notes: 'All easy this week. Equal distribution for recovery. Listen to your body.'
         },
         wednesday: {
-          type: 'Recovery Run',
+          type: 'Easy Run',
           distance: wednesdayKm,
-          intensity: 'Very Easy (55-65% effort)',
-          notes: 'Keep it very comfortable. Active recovery focus.'
+          intensity: 'Very Easy (55-60% effort) - Recovery Week',
+          notes: 'Keep it very comfortable. Focus on active recovery and movement quality.'
         },
         saturday: {
-          type: 'Steady Easy',
+          type: 'Easy Run',
           distance: saturdayKm,
-          intensity: 'Easy (60-70% effort)',
-          notes: 'Maintain easy effort throughout. No heroics.'
+          intensity: 'Easy (60-70% effort) - Recovery Week',
+          notes: 'Easy pace throughout. No long run stress this week - equal volume distribution.'
         }
       };
     } else {
@@ -357,20 +358,20 @@ const RunningPlanner = () => {
         monday: {
           type: 'Recovery Run',
           distance: mondayKm,
-          intensity: 'Very Easy (50-60% effort)',
-          notes: 'Prioritize recovery. Keep it very light and short.'
+          intensity: 'Very Easy (60-65% effort) - Recovery Week',
+          notes: 'Prioritize recovery. All runs easy and equal. Consider walk breaks if needed.'
         },
         wednesday: {
-          type: 'Easy Walk/Jog',
+          type: 'Recovery Run',
           distance: wednesdayKm,
-          intensity: 'Very Easy (50-60% effort)',
-          notes: 'Consider walk breaks. Listen to fatigue signals.'
+          intensity: 'Very Easy (55-60% effort) - Recovery Week',
+          notes: 'Gentle movement. Equal distribution spreads recovery load. Very comfortable pace.'
         },
         saturday: {
           type: 'Easy Run',
           distance: saturdayKm,
-          intensity: 'Easy (55-65% effort)',
-          notes: 'Rebuild gradually. Consider rest day if still fatigued.'
+          intensity: 'Easy (60-70% effort) - Recovery Week',
+          notes: 'Easy run. No long run today - equal split for optimal recovery. Feel better next week.'
         }
       };
     }

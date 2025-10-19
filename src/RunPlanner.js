@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, TrendingUp, Activity, Heart, Clock, Plus, Zap, CalendarPlus } from 'lucide-react';
+import Papa from 'papaparse';
 
 const RunningPlanner = () => {
   const [csvData, setCsvData] = useState([]);
@@ -19,7 +20,6 @@ const RunningPlanner = () => {
 
   const loadData = async () => {
     try {
-      const Papa = await import('https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm');
       const fileData = await window.fs.readFile('Running Strategy  Running Readiness.csv', { encoding: 'utf8' });
       
       const result = Papa.default.parse(fileData, {
@@ -166,12 +166,11 @@ const RunningPlanner = () => {
     console.log('File selected:', file.name);
 
     try {
-      const Papa = await import('https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm');
       const text = await file.text();
       
       console.log('File text length:', text.length);
       
-      const result = Papa.default.parse(text, {
+      const result = Papa.parse(text, {
         header: true,
         dynamicTyping: true,
         skipEmptyLines: true
